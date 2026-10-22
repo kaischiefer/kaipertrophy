@@ -1,0 +1,5 @@
+node_modules/
+dist/
+exercise-plan.csv
+.env
+.env.*
