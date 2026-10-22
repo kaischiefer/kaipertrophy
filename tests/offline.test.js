@@ -1,0 +1,5 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+test('offline worker serves cached app and never intercepts cloud requests',async()=>{const handlers={};const cached={body:'cached app'};let requested;const context={self:{location:{origin:'https://example.com'},registration:{scope:'https://example.com/kaipertrophy/'},addEventListener:(type,handler)=>handlers[type]=handler},URL,Response,caches:{match:async request=>{requested=request.url;return cached;}},fetch:async()=>{throw Error('offline');}};vm.runInNewContext(readFileSync('sw.js','utf8'),context);let response;handlers.fetch({request:{method:'GET',url:'https://example.com/kaipertrophy/app.js'},respondWith:promise=>response=promise});assert.equal(await response,cached);assert.equal(requested,'https://example.com/kaipertrophy/app.js');let intercepted=false;handlers.fetch({request:{method:'GET',url:'https://project.supabase.co/rest/v1/workout_sync'},respondWith:()=>intercepted=true});assert.equal(intercepted,false);});
